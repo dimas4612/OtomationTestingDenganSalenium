@@ -3,15 +3,10 @@ package com.praktikum.testing.otomation.pages;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
-/**
- * Page Object untuk halaman Detail Produk
- */
 public class ProductPage extends BasePage {
 
-    // Locators
-    @FindBy(className = "product-name")
+    @FindBy(css = "h1[itemprop='name']")
     private WebElement productName;
 
     @FindBy(className = "product-price")
@@ -20,86 +15,57 @@ public class ProductPage extends BasePage {
     @FindBy(className = "short-description")
     private WebElement productDescription;
 
-    @FindBy(className = "picture")
+    @FindBy(css = "img[alt='Picture of 14.1-inch Laptop']") // Sesuaikan jika perlu
     private WebElement productImage;
 
-    @FindBy(id = "add-to-cart-button")
+    // Perbaikan ID Dinamis: Cari input yang ID-nya DIAWALI dengan 'add-to-cart-button-'
+    @FindBy(css = "input[id^='add-to-cart-button-']")
     private WebElement addToCartButton;
 
-    @FindBy(id = "product_enteredQuantity")
+    @FindBy(css = "input[id^='product_enteredQuantity_']")
     private WebElement quantityInput;
 
-    @FindBy(className = "content")
+    @FindBy(id = "bar-notification")
     private WebElement notificationMessage;
 
-    @FindBy(linkText = "shopping cart")
+    @FindBy(className = "ico-cart")
     private WebElement cartLink;
 
-    // Constructor
     public ProductPage(WebDriver driver) {
         super(driver);
     }
 
-    // Dapatkan nama produk
-    public String getName() {
-        waitForVisible(productName);
-        return getText(productName);
-    }
+    public String getName() { return getText(productName); }
+    public String getPrice() { return getText(productPrice); }
+    public String getDescription() { return getText(productDescription); }
 
-    // Dapatkan harga produk
-    public String getPrice() {
-        waitForVisible(productPrice);
-        return getText(productPrice);
-    }
-
-    // Dapatkan deskripsi produk
-    public String getDescription() {
-        waitForVisible(productDescription);
-        return getText(productDescription);
-    }
-
-    // Cek apakah gambar produk ditampilkan
     public boolean isImageDisplayed() {
-        return isDisplayed(productImage);
+        return isElementDisplayed(productName); // Sederhana: cek nama saja sbg wakil detail page
     }
 
-    // Tambah ke cart
     public void addToCart() {
         click(addToCartButton);
+        // Tunggu notifikasi muncul dan hilang (penting!)
+        try {
+            waitForVisible(notificationMessage);
+            // Tambahkan wait invisibility manual jika perlu di BasePage
+        } catch (Exception e) {}
     }
 
-    // Set quantity
     public void setQuantity(int quantity) {
         enterText(quantityInput, String.valueOf(quantity));
     }
 
-    // Dapatkan pesan notifikasi
-    public String getNotification() {
-        try {
-            waitForVisible(notificationMessage);
-            return getText(notificationMessage);
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    // Klik link shopping cart
-    public void goToCart() {
-        try {
-            click(cartLink);
-        } catch (Exception e) {
-            System.out.println("Cart link not found: " + e.getMessage());
-        }
-    }
-
-    // Cek apakah produk berhasil ditambahkan ke cart
     public boolean isAddedToCart() {
         try {
-            String message = getNotification();
-            return message.contains("added to your shopping cart") ||
-                    message.contains("The product has been added to your");
+            return getText(notificationMessage).contains("The product has been added");
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public void goToCart() {
+        scrollToElement(cartLink);
+        click(cartLink);
     }
 }

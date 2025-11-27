@@ -18,14 +18,24 @@ public class UserLoginTest extends BaseTest {
         LoginPage loginPage = new LoginPage(driver);
         HomePage homePage = new HomePage(driver);
 
+        // --- TAMBAHAN: Registrasi user baru dulu agar login tidak gagal ---
+        String email = "autouser" + System.currentTimeMillis() + "@test.com";
+        String password = "Password123!";
+
+        com.praktikum.testing.otomation.pages.RegistrationPage regPage =
+                new com.praktikum.testing.otomation.pages.RegistrationPage(driver);
+        regPage.navigateToRegisterPage();
+        regPage.registerUser("Male", "Auto", "User", email, password);
+        loginPage.logout(); // Logout setelah register otomatis
+        // --------------------------------------------------------------
+
         // Buka halaman login
         loginPage.goToLoginPage();
         test.log(Status.INFO, "Buka halaman login");
 
-        // Login dengan credentials valid
-        // Catatan: Gunakan akun yang sudah didaftarkan sebelumnya
-        loginPage.login("jinahap661@fermiro.com", "123456");
-        test.log(Status.INFO, "Login dengan email dan password valid");
+        // Login dengan user yang baru dibuat
+        loginPage.login(email, password);
+        test.log(Status.INFO, "Login dengan email: " + email);
 
         // Verifikasi login berhasil
         Assert.assertTrue(loginPage.isLoginSuccess(), "Login harus berhasil");
@@ -34,7 +44,6 @@ public class UserLoginTest extends BaseTest {
 
         // Logout untuk cleanup
         loginPage.logout();
-        test.log(Status.INFO, "Logout untuk bersih-bersih");
     }
 
     @Test(priority = 2, description = "Test login gagal dengan credentials invalid")

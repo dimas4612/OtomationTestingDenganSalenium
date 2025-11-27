@@ -1,18 +1,14 @@
 package com.praktikum.testing.otomation.pages;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.util.List;
 
-/**
- * Page Object untuk halaman Home
- * URL: http://demowebshop.tricentis.com/
- */
 public class HomePage extends BasePage {
 
-    // Locators
     @FindBy(className = "header-logo")
     private WebElement logo;
 
@@ -25,6 +21,7 @@ public class HomePage extends BasePage {
     @FindBy(className = "product-item")
     private List<WebElement> products;
 
+    // Locator yang lebih spesifik untuk tombol add to cart di homepage
     @FindBy(css = ".product-box-add-to-cart-button")
     private List<WebElement> addToCartButtons;
 
@@ -34,10 +31,10 @@ public class HomePage extends BasePage {
     @FindBy(className = "cart-qty")
     private WebElement cartQuantity;
 
-    @FindBy(linkText = "Log in")
+    @FindBy(className = "ico-login")
     private WebElement loginLink;
 
-    @FindBy(linkText = "Register")
+    @FindBy(className = "ico-register")
     private WebElement registerLink;
 
     @FindBy(className = "ico-account")
@@ -52,56 +49,65 @@ public class HomePage extends BasePage {
     @FindBy(className = "result")
     private WebElement searchResult;
 
-    // Constructor
+    // Elemen notifikasi hijau
+    @FindBy(id = "bar-notification")
+    private WebElement notificationBar;
+
     public HomePage(WebDriver driver) {
         super(driver);
     }
 
-    // Buka halaman home
     public void goToHomePage() {
         driver.get("http://demowebshop.tricentis.com/");
-        wait.until(ExpectedConditions.visibilityOf(logo));
+        waitForVisible(logo);
     }
 
-    // Search produk
     public void search(String keyword) {
         enterText(searchBox, keyword);
         click(searchButton);
     }
 
-    // Tambah produk ke cart berdasarkan index
     public void addToCart(int productIndex) {
         if (productIndex >= 0 && productIndex < addToCartButtons.size()) {
+            scrollToElement(addToCartButtons.get(productIndex)); // Scroll dulu
             click(addToCartButtons.get(productIndex));
+
+            try {
+                wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("bar-notification")));
+                wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("bar-notification")));
+            } catch (Exception e) {
+                System.out.println("Warning: Notification bar sync issue");
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {}
         }
     }
 
-    // Klik cart
     public void goToCart() {
+        // Scroll ke atas karena tombol cart ada di header
+        scrollToElement(cartLink);
         click(cartLink);
     }
 
-    // Dapatkan jumlah item di cart
     public String getCartItemCount() {
         try {
-            return getText(cartQuantity);
+            return getText(cartQuantity).replaceAll("[()]", ""); // Hapus tanda kurung
         } catch (Exception e) {
             return "0";
         }
     }
 
-    // Cek apakah user sudah login
     public boolean isUserLoggedIn() {
         return isDisplayed(accountLink);
     }
 
-    // Dapatkan jumlah hasil search
     public int getSearchResultCount() {
-        wait.until(ExpectedConditions.visibilityOfAllElements(products));
+        // Gunakan findElements langsung untuk menghindari Timeout jika 0 hasil
         return products.size();
     }
 
-    // Dapatkan judul produk
     public String getProductTitle(int index) {
         if (index >= 0 && index < productTitles.size()) {
             return getText(productTitles.get(index));
@@ -109,16 +115,15 @@ public class HomePage extends BasePage {
         return "";
     }
 
-    // Klik produk berdasarkan index
     public void clickProduct(int index) {
         if (index >= 0 && index < productTitles.size()) {
             click(productTitles.get(index));
         }
     }
 
-    // Dapatkan pesan hasil search
     public String getSearchMessage() {
         try {
+            waitForVisible(searchResult);
             return getText(searchResult);
         } catch (Exception e) {
             return "";

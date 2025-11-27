@@ -31,7 +31,7 @@ public class CartPage extends BasePage {
     @FindBy(className = "product-subtotal")
     private List<WebElement> productSubtotals;
 
-    @FindBy(className = "cart-total")
+    @FindBy(css = ".cart-total-right .order-total")
     private WebElement cartTotal;
 
     @FindBy(name = "itemquantity")
@@ -108,7 +108,7 @@ public class CartPage extends BasePage {
 
     // Checkout
     public void checkout() {
-        click(termsCheckbox); // Centang terms
+        click(termsCheckbox);
         click(checkoutButton);
     }
 

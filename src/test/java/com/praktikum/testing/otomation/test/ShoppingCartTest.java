@@ -229,23 +229,23 @@ public class ShoppingCartTest extends BaseTest {
         LoginPage loginPage = new LoginPage(driver);
         CartPage cartPage = new CartPage(driver);
 
-        // Tambah produk sebelum login
+        if (homePage.isUserLoggedIn()) {
+            loginPage.logout();
+        }
+
         homePage.goToHomePage();
         homePage.addToCart(0);
         test.log(Status.INFO, "Tambah produk ke cart sebelum login");
 
-        // Login
         loginPage.goToLoginPage();
         loginPage.login("testuser@example.com", "Test@123");
         test.log(Status.INFO, "Login ke akun");
 
-        // Verifikasi cart items tetap ada
         homePage.goToHomePage();
         String cartQty = homePage.getCartItemCount();
         Assert.assertNotEquals(cartQty, "0", "Cart items harus tetap ada setelah login");
         test.log(Status.PASS, "Cart persistence berhasil - quantity: " + cartQty);
 
-        // Bersih-bersih
         homePage.goToCart();
         cartPage.removeItem(0);
         loginPage.logout();

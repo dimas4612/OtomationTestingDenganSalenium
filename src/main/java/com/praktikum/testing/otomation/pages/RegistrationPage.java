@@ -5,15 +5,9 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
-/**
- * CORRECT VERSION - Updated to extend BasePage
- * Page Object untuk Registration Page
- * URL: http://demowebshop.tricentis.com/register
- */
 public class RegistrationPage extends BasePage {
 
-    // Correct Locators menggunakan @FindBy annotation
-    @FindBy(linkText = "Register")
+    @FindBy(className = "ico-register")
     private WebElement registerLink;
 
     @FindBy(id = "gender-male")
@@ -43,161 +37,78 @@ public class RegistrationPage extends BasePage {
     @FindBy(className = "result")
     private WebElement successMessage;
 
-    @FindBy(css = "div.page-title h1")
+    @FindBy(css = ".page-title h1")
     private WebElement pageTitle;
 
-    // Validation messages
-    @FindBy(css = "#FirstName-error")
+    @FindBy(css = ".field-validation-error[data-valmsg-for='FirstName']")
     private WebElement firstNameError;
 
-    @FindBy(css = "#Email-error")
+    @FindBy(css = ".field-validation-error[data-valmsg-for='Email']")
     private WebElement emailError;
 
-    @FindBy(css = "#Password-error")
+    @FindBy(css = ".field-validation-error[data-valmsg-for='Password']")
     private WebElement passwordError;
 
-    @FindBy(css = "#ConfirmPassword-error")
+    @FindBy(css = ".field-validation-error[data-valmsg-for='ConfirmPassword']")
     private WebElement confirmPasswordError;
 
-    // Constructor
     public RegistrationPage(WebDriver driver) {
-        super(driver); // Panggil constructor BasePage
+        super(driver);
     }
 
-    // Method untuk membuka halaman registrasi
     public void navigateToRegisterPage() {
-        navigateTo("http://demowebshop.tricentis.com/");
-        clickElement(registerLink);
-        wait.until(ExpectedConditions.urlContains("/register"));
+        navigateTo("http://demowebshop.tricentis.com/register");
     }
 
-    // Method untuk memilih gender
     public void selectGender(String gender) {
-        if (gender == null || gender.isEmpty()) {
-            throw new IllegalArgumentException("Gender cannot be null or empty");
-        }
-
-        if (gender.equalsIgnoreCase("Male")) {
-            clickElement(genderMaleRadio);
-        } else if (gender.equalsIgnoreCase("Female")) {
-            clickElement(genderFemaleRadio);
-        } else {
-            throw new IllegalArgumentException("Gender must be 'Male' or 'Female'");
-        }
+        if ("Male".equalsIgnoreCase(gender)) click(genderMaleRadio);
+        else click(genderFemaleRadio);
     }
 
-    // Method untuk mengisi first name
-    public void enterFirstName(String firstName) {
-        enterText(firstNameField, firstName);
-    }
+    public void enterFirstName(String firstName) { enterText(firstNameField, firstName); }
+    public void enterLastName(String lastName) { enterText(lastNameField, lastName); }
+    public void enterEmail(String email) { enterText(emailField, email); }
+    public void enterPassword(String password) { enterText(passwordField, password); }
+    public void enterConfirmPassword(String confirmPassword) { enterText(confirmPasswordField, confirmPassword); }
 
-    // Method untuk mengisi last name
-    public void enterLastName(String lastName) {
-        enterText(lastNameField, lastName);
-    }
+    public void clickRegisterButton() { click(registerButton); }
 
-    // Method untuk mengisi email
-    public void enterEmail(String email) {
-        enterText(emailField, email);
-    }
-
-    // Method untuk mengisi password
-    public void enterPassword(String password) {
-        enterText(passwordField, password);
-    }
-
-    // Method untuk mengisi confirm password
-    public void enterConfirmPassword(String confirmPassword) {
-        enterText(confirmPasswordField, confirmPassword);
-    }
-
-    // Method untuk klik tombol register
-    public void clickRegisterButton() {
-        clickElement(registerButton);
-    }
-
-    // Method untuk mendapatkan pesan sukses
     public String getSuccessMessage() {
-        return getElementText(successMessage);
+        return getText(successMessage);
     }
 
-    // Method untuk mendapatkan page title
     public String getPageTitle() {
-        return getElementText(pageTitle);
+        return getText(pageTitle);
     }
 
-    // Validation error methods
     public String getFirstNameError() {
-        try {
-            return getElementText(firstNameError);
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    public String getLastNameError() {
-        try {
-            // Menggunakan driver findElement manual karena CSS Selector dinamis/spesifik
-            return driver.findElement(org.openqa.selenium.By.cssSelector("#LastName-error")).getText();
-        } catch (Exception e) {
-            return "";
-        }
+        try { waitForVisible(firstNameError); return getText(firstNameError); } catch (Exception e) { return ""; }
     }
 
     public String getEmailError() {
-        try {
-            return getElementText(emailError);
-        } catch (Exception e) {
-            return "";
-        }
+        try { waitForVisible(emailError); return getText(emailError); } catch (Exception e) { return ""; }
     }
 
-    public String getPasswordError() {
-        try {
-            return getElementText(passwordError);
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    public String getConfirmPasswordError() {
-        try {
-            return getElementText(confirmPasswordError);
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    // Method untuk registrasi lengkap
-    public void registerUser(String gender, String firstName, String lastName,
-                             String email, String password) {
+    // Helper untuk register full
+    public void registerUser(String gender, String fName, String lName, String email, String pass) {
         selectGender(gender);
-        enterFirstName(firstName);
-        enterLastName(lastName);
+        enterFirstName(fName);
+        enterLastName(lName);
         enterEmail(email);
-        enterPassword(password);
-        enterConfirmPassword(password);
+        enterPassword(pass);
+        enterConfirmPassword(pass);
         clickRegisterButton();
-
-        // Wait for either success or error
-        wait.until(ExpectedConditions.or(
-                ExpectedConditions.visibilityOf(successMessage),
-                ExpectedConditions.visibilityOf(emailError),
-                ExpectedConditions.visibilityOf(firstNameError)
-        ));
     }
 
-    // Method untuk verifikasi registrasi berhasil
     public boolean isRegistrationSuccessful() {
-        return isElementDisplayed(successMessage) &&
-                getSuccessMessage().contains("Your registration completed");
+        try {
+            return getText(successMessage).contains("Your registration completed");
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    // Method untuk verifikasi ada error validation
     public boolean hasValidationErrors() {
-        return !getFirstNameError().isEmpty() ||
-                !getEmailError().isEmpty() ||
-                !getPasswordError().isEmpty() ||
-                !getConfirmPasswordError().isEmpty();
+        return !getFirstNameError().isEmpty() || !getEmailError().isEmpty();
     }
 }
